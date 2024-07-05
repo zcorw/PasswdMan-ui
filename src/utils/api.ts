@@ -67,3 +67,26 @@ export function login(user: string, passwd: string) {
       localStorage.setItem('token', res.data.token)
     })
 }
+
+export function register(user: string, passwd: string) {
+  return axiosInstance.post(
+    'register',
+    { username: user, password: passwd },
+    { noAuthRequired: true },
+  )
+}
+
+export function importPasswd(file: File) {
+  const formData = new FormData()
+  formData.append('file', file)
+  return axiosInstance
+    .post('password/import', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+      noAuthRequired: true,
+    })
+    .then((res) => {
+      return res.data
+    })
+}
