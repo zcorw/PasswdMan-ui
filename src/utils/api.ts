@@ -39,7 +39,10 @@ axiosInstance.interceptors.request.use(
 )
 axiosInstance.interceptors.response.use(
   (response) => {
-    const { data } = response
+    const { data, headers } = response
+    if (headers['x-new-token']) {
+      localStorage.setItem('token', headers['x-new-token'])
+    }
     if (+data.code !== 20000) {
       ElMessage({ message: data.errorMsg, type: 'error' })
       return Promise.reject({ ...data, message: data.errorMsg })
@@ -48,7 +51,7 @@ axiosInstance.interceptors.response.use(
     }
   },
   (error) => {
-    if (error.response && error.response.status === 403) {
+    if (error.response && [401, 403].includes(error.response.status)) {
       tokenExpired()
     }
     return Promise.reject(error)
@@ -84,7 +87,19 @@ export function importPasswd(file: File) {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
-      noAuthRequired: true,
+    })
+    .then((res) => {
+      return res.data
+    })
+}
+
+export function getList() {
+  return axiosInstance
+    .get('password/list', {
+      params: {
+        page: 1,
+        limit: 20,
+      },
     })
     .then((res) => {
       return res.data
