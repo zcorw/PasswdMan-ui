@@ -23,7 +23,7 @@
 <script setup lang="ts">
 import { Lock, User } from '@element-plus/icons-vue'
 import { reactive, onMounted } from 'vue'
-import { login } from '@/utils/api'
+import { login, register } from '@/utils/api'
 const form = reactive({
   username: '',
   password: '',
@@ -43,6 +43,7 @@ const loginHandle = () => {
       localStorage.setItem('username', form.username)
     }
   })
+  // register(form.username, form.password)
 }
 </script>
 

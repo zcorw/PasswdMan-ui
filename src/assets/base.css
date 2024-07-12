@@ -58,6 +58,10 @@
   font-weight: normal;
 }
 
+* {
+  scrollbar-color: var(--el-scrollbar-bg-color) var(--el-fill-color-light);
+}
+
 body {
   min-height: 100vh;
   color: var(--color-text);
@@ -72,3 +76,4 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+

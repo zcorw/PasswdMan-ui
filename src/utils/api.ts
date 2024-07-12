@@ -1,6 +1,7 @@
 import axios from 'axios'
 import { ElMessage } from 'element-plus'
 import router from '@/router'
+import type { PwListItem } from '@/types/api'
 
 declare module 'axios' {
   export interface AxiosRequestConfig {
@@ -93,11 +94,11 @@ export function importPasswd(file: File) {
     })
 }
 
-export function getList() {
+export function getList(id?: string) {
   return axiosInstance
-    .get('password/list', {
+    .get<{ data: PwListItem[]; total: number }>('password/list', {
       params: {
-        page: 1,
+        id,
         limit: 20,
       },
     })
