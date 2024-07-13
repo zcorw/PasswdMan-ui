@@ -1,22 +1,43 @@
 <template>
   <div class="home-body">
-    <ul class="infinite-list" style="overflow: auto">
-      <li v-for="item in list" :key="item.id">{{ item.name }}</li>
-    </ul>
+    <el-scrollbar>
+      <ul
+        v-infinite-scroll="queryList"
+        :infinite-scroll-disabled="disabledQuery"
+        :infinite-scroll-immediate="false"
+        class="infinite-list"
+      >
+        <li v-for="item in list" :key="item.id">
+          <div class="password-item">
+            <div class="info-block">
+              <span class="main-line">{{ item.name }}</span>
+              <span class="secondary-line">{{ item.username }}</span>
+            </div>
+            <div class="action-block">
+              <el-button @click="copyContent(item.username)">用户名</el-button>
+              <el-button @click="copyContent(item.password)">密码</el-button>
+            </div>
+          </div>
+        </li>
+      </ul>
+    </el-scrollbar>
   </div>
 </template>
 
 <script lang="ts" setup>
 import { ref, onMounted } from 'vue'
+import { ElMessage } from 'element-plus'
 import type { Password } from '@/types/main'
 import { getList } from '@/utils/api'
 const list = ref<Password[]>([])
+const disabledQuery = ref(false)
+const queryText = ref('patr')
 function queryList() {
   let promise = null
   if (list.value.length > 0) {
-    promise = getList(list.value[list.value.length - 1].id)
+    promise = getList(queryText.value, list.value[list.value.length - 1].id)
   } else {
-    promise = getList()
+    promise = getList(queryText.value)
   }
   promise.then((res) => {
     list.value = list.value.concat(
@@ -34,7 +55,18 @@ function queryList() {
         }
       }),
     )
+    if (list.value.length >= res.total) {
+      disabledQuery.value = true
+    }
   })
+}
+async function copyContent(text: string) {
+  try {
+    await navigator.clipboard.writeText(text)
+    ElMessage.success('复制成功')
+  } catch (err) {
+    console.error('Failed to copy: ', err)
+  }
 }
 onMounted(() => {
   queryList()
@@ -46,17 +78,36 @@ onMounted(() => {
   flex: 1;
   padding: 16px 0;
   box-sizing: border-box;
-
-  ul {
-    height: 100%;
-  }
-
-  li {}
+  min-height: 0;
 }
 
 .infinite-list {
   padding: 0;
   margin: 0;
-  list-style: none;
+  ::v-deep ul {
+    list-style: none;
+    height: 100%;
+    padding-left: 0;
+  }
+}
+.password-item {
+  border-bottom: var(--el-border-color) 1px solid;
+  padding: 8px 16px;
+  display: flex;
+  justify-content: space-between;
+  .info-block {
+    display: flex;
+    flex-direction: column;
+    .main-line {
+      font-size: var(--el-font-size-large);
+    }
+    .secondary-line {
+      color: var(--el-text-color-placeholder);
+    }
+  }
+  .action-block {
+    display: flex;
+    align-items: center;
+  }
 }
 </style>

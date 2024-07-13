@@ -94,12 +94,13 @@ export function importPasswd(file: File) {
     })
 }
 
-export function getList(id?: string) {
+export function getList(text?: string, id?: string) {
   return axiosInstance
     .get<{ data: PwListItem[]; total: number }>('password/list', {
       params: {
         id,
         limit: 20,
+        text,
       },
     })
     .then((res) => {
