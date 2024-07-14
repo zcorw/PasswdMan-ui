@@ -11,18 +11,19 @@ declare module 'vue' {
     ElCheckbox: typeof import('element-plus/es')['ElCheckbox']
     ElForm: typeof import('element-plus/es')['ElForm']
     ElFormItem: typeof import('element-plus/es')['ElFormItem']
+    ElIcon: typeof import('element-plus/es')['ElIcon']
     ElInput: typeof import('element-plus/es')['ElInput']
-    HelloWorld: typeof import('./src/components/HelloWorld.vue')['default']
+    ElScrollbar: typeof import('element-plus/es')['ElScrollbar']
+    GroupBox: typeof import('./src/components/GroupBox.vue')['default']
     HomeBody: typeof import('./src/components/HomeBody.vue')['default']
     HomeHeader: typeof import('./src/components/HomeHeader.vue')['default']
-    IconCommunity: typeof import('./src/components/icons/IconCommunity.vue')['default']
-    IconDocumentation: typeof import('./src/components/icons/IconDocumentation.vue')['default']
-    IconEcosystem: typeof import('./src/components/icons/IconEcosystem.vue')['default']
-    IconSupport: typeof import('./src/components/icons/IconSupport.vue')['default']
-    IconTooling: typeof import('./src/components/icons/IconTooling.vue')['default']
+    HomeSearch: typeof import('./src/components/HomeSearch.vue')['default']
+    LoginBox: typeof import('./src/components/LoginBox.vue')['default']
+    RegisterBox: typeof import('./src/components/RegisterBox.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
-    TheWelcome: typeof import('./src/components/TheWelcome.vue')['default']
-    WelcomeItem: typeof import('./src/components/WelcomeItem.vue')['default']
+  }
+  export interface ComponentCustomProperties {
+    vInfiniteScroll: typeof import('element-plus/es')['ElInfiniteScroll']
   }
 }

@@ -1,7 +1,7 @@
 import axios from 'axios'
 import { ElMessage } from 'element-plus'
 import router from '@/router'
-import type { PwListItem } from '@/types/api'
+import type { PwListItem, GroupsItem, PasswordParams } from '@/types/api'
 
 declare module 'axios' {
   export interface AxiosRequestConfig {
@@ -45,8 +45,8 @@ axiosInstance.interceptors.response.use(
       localStorage.setItem('token', headers['x-new-token'])
     }
     if (+data.code !== 20000) {
-      ElMessage({ message: data.errorMsg, type: 'error' })
-      return Promise.reject({ ...data, message: data.errorMsg })
+      ElMessage({ message: data.msg, type: 'error' })
+      return Promise.reject({ ...data, message: data.msg })
     } else {
       return Promise.resolve(data)
     }
@@ -54,6 +54,7 @@ axiosInstance.interceptors.response.use(
   (error) => {
     if (error.response && [401, 403].includes(error.response.status)) {
       tokenExpired()
+      ElMessage.error(error.response.data.msg)
     }
     return Promise.reject(error)
   },
@@ -94,16 +95,29 @@ export function importPasswd(file: File) {
     })
 }
 
-export function getList(text?: string, id?: string) {
+export function getList(data: PasswordParams) {
   return axiosInstance
     .get<{ data: PwListItem[]; total: number }>('password/list', {
       params: {
-        id,
+        id: data.id,
         limit: 20,
-        text,
+        text: data.text,
+        groupId: data.groupId,
       },
     })
     .then((res) => {
       return res.data
     })
+}
+
+export function getAuthConfig() {
+  return axiosInstance.get('authConfig', { noAuthRequired: true }).then((res) => {
+    return res.data
+  })
+}
+
+export function getGroups() {
+  return axiosInstance.get<GroupsItem[]>('password/groups').then((res) => {
+    return res.data
+  })
 }

@@ -9,3 +9,9 @@ export interface Password {
   updatedAt: string
   groupId: string
 }
+
+export interface Group {
+  id: string
+  title: string
+  checked: boolean
+}

@@ -1,50 +1,37 @@
 <template>
   <div class="form-container">
-    <div class="login-box">
-      <div class="form-title">登录</div>
-      <el-form class="form-main" :model="form">
-        <el-form-item prop="username">
-          <el-input :prefix-icon="User" v-model="form.username" />
-        </el-form-item>
-        <el-form-item prop="password">
-          <el-input :prefix-icon="Lock" v-model="form.password" show-password />
-        </el-form-item>
-        <el-form-item prop="remember">
-          <el-checkbox v-model="form.remember">记住我</el-checkbox>
-        </el-form-item>
-        <el-form-item>
-          <el-button class="form-submit" type="primary" @click="loginHandle">登录</el-button>
-        </el-form-item>
-      </el-form>
-    </div>
+    <LoginBox
+      v-if="type === 'login'"
+      :username="username"
+      :enableRegister="enableRegister"
+      @register="register"
+    />
+    <RegisterBox v-else @login="login" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { Lock, User } from '@element-plus/icons-vue'
-import { reactive, onMounted } from 'vue'
-import { login, register } from '@/utils/api'
-const form = reactive({
-  username: '',
-  password: '',
-  remember: true,
-})
+import { ref, onMounted } from 'vue'
+import LoginBox from '@/components/LoginBox.vue'
+import RegisterBox from '@/components/RegisterBox.vue'
+import { getAuthConfig } from '@/utils/api'
 
-onMounted(() => {
-  const username = localStorage.getItem('username')
-  if (username) {
-    form.username = username
-  }
-})
-
-const loginHandle = () => {
-  login(form.username, form.password).then(() => {
-    if (form.remember) {
-      localStorage.setItem('username', form.username)
-    }
-  })
-  // register(form.username, form.password)
+const type = ref('login')
+const username = ref('')
+const enableRegister = ref(false)
+const register = () => {
+  type.value = 'register'
+  username.value = ''
 }
+const login = (name: string) => {
+  type.value = 'login'
+  username.value = name
+}
+onMounted(() => {
+  getAuthConfig().then((res) => {
+    enableRegister.value = res.enableRegister
+  })
+})
 </script>
 
 <style>
@@ -58,6 +45,7 @@ const loginHandle = () => {
 .login-box {
   display: flex;
   flex-direction: column;
+  position: relative;
 
   .form-title {
     text-align: center;
@@ -68,5 +56,9 @@ const loginHandle = () => {
 
 .form-submit {
   width: 100%;
+}
+.form-line {
+  display: flex;
+  justify-content: space-between;
 }
 </style>

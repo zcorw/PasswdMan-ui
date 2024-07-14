@@ -25,21 +25,35 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import type { Password } from '@/types/main'
+import type { PasswordParams } from '@/types/api'
 import { getList } from '@/utils/api'
+const props = defineProps<{
+  groupID: string
+}>()
 const list = ref<Password[]>([])
 const disabledQuery = ref(false)
-const queryText = ref('patr')
+const queryText = ref('')
+watch(
+  () => props.groupID,
+  () => {
+    list.value = []
+    queryList()
+  },
+)
 function queryList() {
-  let promise = null
-  if (list.value.length > 0) {
-    promise = getList(queryText.value, list.value[list.value.length - 1].id)
-  } else {
-    promise = getList(queryText.value)
+  let params: PasswordParams = {
+    text: queryText.value,
   }
-  promise.then((res) => {
+  if (list.value.length > 0) {
+    params.id = list.value[list.value.length - 1].id
+  }
+  if (props.groupID) {
+    params.groupId = props.groupID
+  }
+  getList(params).then((res) => {
     list.value = list.value.concat(
       res.data.map((item) => {
         return {
@@ -68,9 +82,18 @@ async function copyContent(text: string) {
     console.error('Failed to copy: ', err)
   }
 }
+function setSearchText(text: string) {
+  queryText.value = text
+  list.value = []
+  queryList()
+}
+function reload() {
+  setSearchText('')
+}
 onMounted(() => {
   queryList()
 })
+defineExpose({ setSearchText, reload })
 </script>
 
 <style lang="scss" scoped>

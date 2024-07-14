@@ -8,3 +8,14 @@ export interface PwListItem {
   uri: string
   username: string
 }
+
+export interface GroupsItem {
+  id: string
+  title: string
+}
+
+export interface PasswordParams {
+  text?: string
+  id?: string
+  groupId?: string
+}
