@@ -1,12 +1,8 @@
 <template>
   <div class="home-body">
     <el-scrollbar>
-      <ul
-        v-infinite-scroll="queryList"
-        :infinite-scroll-disabled="disabledQuery"
-        :infinite-scroll-immediate="false"
-        class="infinite-list"
-      >
+      <ul v-infinite-scroll="queryList" :infinite-scroll-disabled="disabledQuery" :infinite-scroll-immediate="false"
+        class="infinite-list">
         <li v-for="item in list" :key="item.id">
           <div class="password-item">
             <div class="info-block">
@@ -61,7 +57,7 @@ function queryList() {
           name: item.name,
           username: item.username,
           password: item.password,
-          uri: item.uri.split(','),
+          uri: item.uri?.split(','),
           fields: item.fields,
           createdAt: item.createTime,
           updatedAt: item.createTime,
@@ -107,27 +103,33 @@ defineExpose({ setSearchText, reload })
 .infinite-list {
   padding: 0;
   margin: 0;
+
   ::v-deep ul {
     list-style: none;
     height: 100%;
     padding-left: 0;
   }
 }
+
 .password-item {
   border-bottom: var(--el-border-color) 1px solid;
   padding: 8px 16px;
   display: flex;
   justify-content: space-between;
+
   .info-block {
     display: flex;
     flex-direction: column;
+
     .main-line {
       font-size: var(--el-font-size-large);
     }
+
     .secondary-line {
       color: var(--el-text-color-placeholder);
     }
   }
+
   .action-block {
     display: flex;
     align-items: center;

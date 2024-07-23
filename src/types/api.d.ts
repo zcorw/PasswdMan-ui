@@ -19,3 +19,12 @@ export interface PasswordParams {
   id?: string
   groupId?: string
 }
+
+export interface CreatePassword {
+  name: string
+  username?: string
+  password: string
+  uri?: string[]
+  fields?: string
+  groupId: string
+}

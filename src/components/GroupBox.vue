@@ -1,29 +1,40 @@
 <template>
   <div class="group-box">
-    <el-button @click="handleChange">导入密码</el-button>
+    <div class="button-row">
+      <el-button @click="handleChange">导入密码</el-button>
+      <el-button @click="handleAdd">新增密码</el-button>
+    </div>
     <div class="group-title">
-      <el-icon><Folder /></el-icon>
+      <el-icon>
+        <Folder />
+      </el-icon>
       分组
     </div>
     <el-scrollbar class="group-list">
       <ul>
         <li v-for="item in groupList" :key="item.id" :class="{ checked: item.checked }">
-          <el-icon v-if="item.checked" class="checked-icon"><Check /></el-icon>
+          <el-icon v-if="item.checked" class="checked-icon">
+            <Check />
+          </el-icon>
           <a @click="selectGroup(item.id)">
             {{ item.title }}
           </a>
-          <el-icon v-if="item.checked" class="close-icon" @click="close"><Close /></el-icon>
+          <el-icon v-if="item.checked" class="close-icon" @click="close">
+            <Close />
+          </el-icon>
         </li>
       </ul>
     </el-scrollbar>
+    <PasswdAddDialog ref="addDialogRef" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted, computed, ref } from 'vue'
+import { onMounted, computed, ref, provide } from 'vue'
 import { importPasswd, getGroups } from '@/utils/api'
 import { ElMessage } from 'element-plus'
 import { Folder, Close, Check } from '@element-plus/icons-vue'
+import PasswdAddDialog from '@/components/PasswdAddDialog.vue';
 import type { Group } from '@/types/main'
 const props = defineProps<{
   checkedId: string
@@ -36,6 +47,8 @@ const groupList = computed<Group[]>(() => {
     checked: item.id === props.checkedId,
   }))
 })
+const addDialogRef = ref<InstanceType<typeof PasswdAddDialog> | null>(null)
+provide('groupList', groupList)
 const handleChange = () => {
   const element = document.createElement('input')
   element.type = 'file'
@@ -51,6 +64,9 @@ const handleChange = () => {
       })
   })
   element.click()
+}
+const handleAdd = () => {
+  addDialogRef.value?.open()
 }
 const selectGroup = (id: string) => {
   emits('update:checkedId', id)
@@ -77,31 +93,50 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
 }
+
+@media only screen and (max-width: 912px) {
+  .group-box {
+    display: none;
+  }
+}
+
+.button-row {
+  &+& {
+    margin-top: 10px;
+  }
+}
+
 .group-title {
   margin-top: 20px;
   font-size: var(--el-font-size-large);
 }
+
 .group-list {
   margin-top: 10px;
   flex: 1;
   min-height: 0;
+
   ul {
     list-style: none;
     height: 100%;
     padding-left: 0;
+
     li {
       line-height: 30px;
       position: relative;
+
       &.checked {
         border-bottom: var(--vt-c-divider-light-1) 1px solid;
         padding-left: 18px;
       }
+
       .checked-icon {
         position: absolute;
         left: 0;
         top: 50%;
         transform: translateY(-50%);
       }
+
       .close-icon {
         position: absolute;
         right: 0;
@@ -110,6 +145,7 @@ onMounted(() => {
         cursor: pointer;
       }
     }
+
     a {
       cursor: pointer;
     }

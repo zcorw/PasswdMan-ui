@@ -1,7 +1,7 @@
 import axios from 'axios'
 import { ElMessage } from 'element-plus'
 import router from '@/router'
-import type { PwListItem, GroupsItem, PasswordParams } from '@/types/api'
+import type { PwListItem, GroupsItem, PasswordParams, CreatePassword } from '@/types/api'
 
 declare module 'axios' {
   export interface AxiosRequestConfig {
@@ -120,4 +120,12 @@ export function getGroups() {
   return axiosInstance.get<GroupsItem[]>('password/groups').then((res) => {
     return res.data
   })
+}
+
+export function addPassword(data: CreatePassword) {
+  return axiosInstance
+    .post('password/add', data)
+    .then((res) => {
+      return res.data
+    })
 }
