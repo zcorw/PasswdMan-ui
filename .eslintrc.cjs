@@ -32,5 +32,15 @@ module.exports = {
         args: 'none',
       },
     ],
+    'vue/max-attributes-per-line': [
+      'error',
+      {
+        singleline: 2, // 在单行中最多允许两个属性
+        multiline: {
+          max: 1, // 在多行中每行最多允许一个属性
+          allowFirstLine: false, // 是否允许在第一行中有多个属性
+        },
+      },
+    ],
   },
 }
