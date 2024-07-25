@@ -129,3 +129,15 @@ export function addPassword(data: CreatePassword) {
       return res.data
     })
 }
+
+export function getPasswdText(id: string) {
+  return axiosInstance
+    .get('password/find', {
+      params: {
+        id,
+      },
+    })
+    .then((res) => {
+      return res.data as string
+    })
+}

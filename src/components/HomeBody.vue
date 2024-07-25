@@ -10,8 +10,8 @@
               <span class="secondary-line">{{ item.username }}</span>
             </div>
             <div class="action-block">
-              <el-button @click="copyContent(item.username)">用户名</el-button>
-              <el-button @click="copyContent(item.password)">密码</el-button>
+              <el-button @click="copyUsername(item.username)">用户名</el-button>
+              <el-button @click="copyPassword(item.id)">密码</el-button>
             </div>
           </div>
         </li>
@@ -25,7 +25,7 @@ import { ref, onMounted, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import type { Password } from '@/types/main'
 import type { PasswordParams } from '@/types/api'
-import { getList } from '@/utils/api'
+import { getList, getPasswdText } from '@/utils/api'
 const props = defineProps<{
   groupID: string
 }>()
@@ -77,6 +77,13 @@ async function copyContent(text: string) {
   } catch (err) {
     console.error('Failed to copy: ', err)
   }
+}
+function copyUsername(text: string) {
+  copyContent(text)
+}
+async function copyPassword(id: string) {
+  const text = await getPasswdText(id)
+  copyContent(text)
 }
 function setSearchText(text: string) {
   queryText.value = text
