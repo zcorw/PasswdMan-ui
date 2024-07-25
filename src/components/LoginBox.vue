@@ -6,7 +6,7 @@
         <el-input :prefix-icon="User" v-model="form.username" />
       </el-form-item>
       <el-form-item prop="password">
-        <el-input :prefix-icon="Lock" v-model="form.password" show-password />
+        <el-input :prefix-icon="Lock" v-model="form.password" show-password @keyup.enter="loginHandle" />
       </el-form-item>
       <div class="form-line">
         <el-form-item prop="remember">
