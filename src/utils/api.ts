@@ -141,3 +141,36 @@ export function getPasswdText(id: string) {
       return res.data as string
     })
 }
+
+export function updatePassword(id: string, data: CreatePassword) {
+  type updateData = {
+    [key in keyof CreatePassword]?: string
+  }
+  const dataCopy = {} as updateData
+  (Object.keys(data) as Array<keyof CreatePassword>).forEach((key: keyof CreatePassword) => {
+    if (Array.isArray(data[key])) {
+      if (data[key].length > 0)
+        dataCopy[key] = data[key].join(',')
+    } else {
+      if (data[key])
+        dataCopy[key] = data[key]
+    }
+  })
+  return axiosInstance
+    .put('password/update/' + id, dataCopy)
+    .then((res) => {
+      return {
+        pId: res.data.pId,
+        name: res.data.name,
+        username: res.data.username,
+      }
+    })
+}
+
+export function deletePassword(id: string) {
+  return axiosInstance
+    .delete('password/delete/' + id)
+    .then((res) => {
+      return res.data
+    })
+}

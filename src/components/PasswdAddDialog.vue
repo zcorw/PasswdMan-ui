@@ -25,6 +25,14 @@
           </el-form-item>
         </el-col>
       </el-row>
+      <el-row type="flex" justify="space-between" :gutter="20">
+        <el-col :span="24">
+          <span>关联链接</span>
+          <el-button type="text" @click="addHandle"><el-icon>
+              <Plus />
+            </el-icon></el-button>
+        </el-col>
+      </el-row>
     </el-form>
     <template #footer>
       <span class="dialog-footer">
@@ -37,6 +45,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, inject, watch } from 'vue'
+import { Plus } from '@element-plus/icons-vue'
 import type { Ref } from 'vue'
 import type { FormInstance, FormRules } from 'element-plus'
 import { addPassword } from '@/utils/api'
