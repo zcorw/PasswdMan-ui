@@ -1,7 +1,7 @@
 import axios from 'axios'
 import { ElMessage } from 'element-plus'
 import router from '@/router'
-import type { PwListItem, GroupsItem, PasswordParams, CreatePassword } from '@/types/api'
+import type { PwListItem, GroupsItem, PasswordParams, CreatePassword, NoteListItem } from '@/types/api'
 
 declare module 'axios' {
   export interface AxiosRequestConfig {
@@ -95,6 +95,20 @@ export function importPasswd(file: File) {
     })
 }
 
+export function importNote(file: File) {
+  const formData = new FormData()
+  formData.append('file', file)
+  return axiosInstance
+    .post('note/import', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    })
+    .then((res) => {
+      return res.data
+    })
+}
+
 export function getList(data: PasswordParams) {
   return axiosInstance
     .get<{ data: PwListItem[]; total: number }>('password/list', {
@@ -149,7 +163,7 @@ export function updatePassword(id: string, data: CreatePassword) {
   const dataCopy = {} as updateData
   (Object.keys(data) as Array<keyof CreatePassword>).forEach((key: keyof CreatePassword) => {
     if (Array.isArray(data[key])) {
-      if (data[key].length > 0)
+      if (data && data[key] && data[key].length > 0)
         dataCopy[key] = data[key].join(',')
     } else {
       if (data[key])
@@ -170,6 +184,25 @@ export function updatePassword(id: string, data: CreatePassword) {
 export function deletePassword(id: string) {
   return axiosInstance
     .delete('password/delete/' + id)
+    .then((res) => {
+      return res.data
+    })
+}
+
+export function signOut() {
+  localStorage.removeItem('token')
+}
+
+export function getNotes(data: PasswordParams) {
+  return axiosInstance
+    .get<{ data: NoteListItem[]; total: number }>('note/list', {
+      params: {
+        id: data.id,
+        limit: 20,
+        text: data.text,
+        groupId: data.groupId,
+      },
+    })
     .then((res) => {
       return res.data
     })

@@ -9,6 +9,17 @@ export interface PwListItem {
   username: string
 }
 
+export interface NoteListItem {
+  createTime: string
+  id: string
+  name: string
+  note: string
+  nId: string
+  updateTime: string
+  fields: string
+  uri: string
+}
+
 export interface GroupsItem {
   id: string
   title: string

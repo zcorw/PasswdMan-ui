@@ -1,8 +1,26 @@
 <template>
   <div class="group-box">
     <div class="button-row">
-      <el-button @click="handleChange">导入密码</el-button>
-      <el-button @click="handleAdd">新增密码</el-button>
+      <el-dropdown split-button @click="handleChange" @command="handleCommand(1, $event)">
+        {{ importText }}
+        <template #dropdown>
+          <el-dropdown-menu>
+            <el-dropdown-item v-for="item in commandList" :key="item.value" :command="item.value">
+              {{ item.label }}
+            </el-dropdown-item>
+          </el-dropdown-menu>
+        </template>
+      </el-dropdown>
+      <el-dropdown split-button @click="handleAdd" @command="handleCommand(2, $event)">
+        {{ addText }}
+        <template #dropdown>
+          <el-dropdown-menu>
+            <el-dropdown-item v-for="item in commandList" :key="item.value" :command="item.value">
+              {{ item.label }}
+            </el-dropdown-item>
+          </el-dropdown-menu>
+        </template>
+      </el-dropdown>
     </div>
     <div class="group-title">
       <el-icon>
@@ -31,7 +49,7 @@
 
 <script setup lang="ts">
 import { onMounted, computed, ref, provide } from 'vue'
-import { importPasswd, getGroups } from '@/utils/api'
+import { importPasswd, getGroups, importNote } from '@/utils/api'
 import { ElMessage } from 'element-plus'
 import { Folder, Close, Check } from '@element-plus/icons-vue'
 import PasswdAddDialog from '@/components/PasswdAddDialog.vue';
@@ -48,6 +66,18 @@ const groupList = computed<Group[]>(() => {
   }))
 })
 const addDialogRef = ref<InstanceType<typeof PasswdAddDialog> | null>(null)
+const commandList = [
+  { label: '密码', value: 1 },
+  { label: '笔记', value: 2 },
+]
+const importType = ref(1)
+const addType = ref(1)
+const importText = computed(() => {
+  return importType.value === 1 ? '导入密码' : '导入笔记'
+})
+const addText = computed(() => {
+  return addType.value === 1 ? '新增密码' : '新增笔记'
+})
 provide('groupList', groupList)
 const handleChange = () => {
   const element = document.createElement('input')
@@ -55,10 +85,11 @@ const handleChange = () => {
   element.addEventListener('change', (e: Event) => {
     const target = e.target as HTMLInputElement
     const file = target.files?.[0]
+    const request = importType.value === 1 ? importPasswd : importNote
     if (file)
-      importPasswd(file).then(() => {
+      request(file).then(() => {
         setTimeout(() => {
-          emits('import')
+          emits('import', importType.value)
         }, 1000)
         ElMessage.success('导入成功')
       })
@@ -73,6 +104,13 @@ const selectGroup = (id: string) => {
 }
 const close = () => {
   emits('update:checkedId', '')
+}
+const handleCommand = (type: number, command: number) => {
+  if (type === 1) {
+    importType.value = command
+  } else {
+    addType.value = command
+  }
 }
 onMounted(() => {
   getGroups().then((data) => {
@@ -101,8 +139,8 @@ onMounted(() => {
 }
 
 .button-row {
-  &+& {
-    margin-top: 10px;
+  .el-dropdown {
+    margin-right: 10px;
   }
 }
 
