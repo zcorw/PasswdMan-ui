@@ -1,7 +1,7 @@
 import axios from 'axios'
 import { ElMessage } from 'element-plus'
 import router from '@/router'
-import type { PwListItem, GroupsItem, PasswordParams, CreatePassword, NoteListItem } from '@/types/api'
+import type { PwListItem, GroupsItem, PasswordParams, CreatePassword, NoteListItem, CreateNote } from '@/types/api'
 
 declare module 'axios' {
   export interface AxiosRequestConfig {
@@ -44,6 +44,7 @@ axiosInstance.interceptors.response.use(
     if (headers['x-new-token']) {
       localStorage.setItem('token', headers['x-new-token'])
     }
+    console.log(data.code)
     if (+data.code !== 20000) {
       ElMessage({ message: data.msg, type: 'error' })
       return Promise.reject({ ...data, message: data.msg })
@@ -55,6 +56,8 @@ axiosInstance.interceptors.response.use(
     if (error.response && [401, 403].includes(error.response.status)) {
       tokenExpired()
       ElMessage.error(error.response.data.msg)
+    } else {
+      error.response?.data?.msg && ElMessage.error(error.response.data.msg)
     }
     return Promise.reject(error)
   },
@@ -156,20 +159,24 @@ export function getPasswdText(id: string) {
     })
 }
 
-export function updatePassword(id: string, data: CreatePassword) {
-  type updateData = {
-    [key in keyof CreatePassword]?: string
-  }
-  const dataCopy = {} as updateData
-  (Object.keys(data) as Array<keyof CreatePassword>).forEach((key: keyof CreatePassword) => {
+function allToString<T extends object>(data: T): {
+  [key in keyof T]?: string
+} {
+  const dataCopy = {} as { [key in keyof T]?: string }
+  (Object.keys(data) as Array<keyof T>).forEach((key: keyof T) => {
     if (Array.isArray(data[key])) {
       if (data && data[key] && data[key].length > 0)
         dataCopy[key] = data[key].join(',')
     } else {
-      if (data[key])
-        dataCopy[key] = data[key]
+      if (data[key] !== undefined && data[key] !== null)
+        dataCopy[key] = String(data[key])
     }
   })
+  return dataCopy
+}
+
+export function updatePassword(id: string, data: CreatePassword) {
+  const dataCopy = allToString<CreatePassword>(data)
   return axiosInstance
     .put('password/update/' + id, dataCopy)
     .then((res) => {
@@ -203,6 +210,43 @@ export function getNotes(data: PasswordParams) {
         groupId: data.groupId,
       },
     })
+    .then((res) => {
+      return res.data
+    })
+}
+
+export function getNoteText(id: string) {
+  return axiosInstance
+    .get('note/find', {
+      params: {
+        id,
+      },
+    })
+    .then((res) => {
+      return res.data as string
+    })
+}
+
+export function deleteNote(id: string) {
+  return axiosInstance
+    .delete('note/delete/' + id)
+    .then((res) => {
+      return res.data
+    })
+}
+
+export function updateNote(id: string, data: CreateNote) {
+  const dataCopy = allToString<CreateNote>(data)
+  return axiosInstance
+    .put('note/update/' + id, dataCopy)
+    .then((res) => {
+      return res.data
+    })
+}
+
+export function addNote(data: CreateNote) {
+  return axiosInstance
+    .post('note/add', data)
     .then((res) => {
       return res.data
     })

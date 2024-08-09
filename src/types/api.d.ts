@@ -39,3 +39,11 @@ export interface CreatePassword {
   fields?: string
   groupId: string
 }
+
+export interface CreateNote {
+  name: string
+  note: string
+  fields?: string
+  uri?: string[]
+  groupId: string
+}

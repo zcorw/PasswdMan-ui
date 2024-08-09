@@ -8,17 +8,25 @@ import NoteBody from '@/components/NoteBody.vue'
 
 const bodyRef = ref()
 const noteRef = ref()
+const searchRef = ref()
 const groupId = ref('')
-const tabRef = ref(1)
+const tabType = ref(1)
 const searchHandle = (queryText: string) => {
   bodyRef.value.setSearchText(queryText)
 }
-const reload = () => {
-  bodyRef.value.reload()
+const reload = (type: number) => {
+  if (tabType.value === type) {
+    if (type === 1) {
+      bodyRef.value.reload()
+    } else {
+      noteRef.value.reload()
+    }
+  }
 }
 // 标签页切换
 const tabChange = (type: number) => {
-  tabRef.value = type
+  tabType.value = type
+  searchRef?.value.clear('')
 }
 </script>
 
@@ -26,9 +34,9 @@ const tabChange = (type: number) => {
   <main>
     <HomeHeader />
     <div class="home-box">
-      <GroupBox v-model:checked-id="groupId" @import="reload" />
+      <GroupBox v-model:checked-id="groupId" @submit="reload" />
       <div class="main-box">
-        <HomeSearch @search="searchHandle" />
+        <HomeSearch ref="searchRef" :type="tabType" @search="searchHandle" />
         <div class="tabs-container">
           <div class="tab-item" @click="tabChange(1)">
             密码
@@ -37,7 +45,7 @@ const tabChange = (type: number) => {
             笔记
           </div>
         </div>
-        <HomeBody ref="bodyRef" v-if="tabRef === 1" :groupID="groupId" />
+        <HomeBody ref="bodyRef" v-if="tabType === 1" :groupID="groupId" />
         <NoteBody ref="noteRef" v-else :groupID="groupId" />
       </div>
     </div>
@@ -69,6 +77,7 @@ main {
   flex: 2;
   display: flex;
   flex-direction: column;
+  min-width: 0;
 }
 
 .tabs-container {

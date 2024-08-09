@@ -1,5 +1,5 @@
 <template>
-  <el-dialog v-model="dialogVisible" title="添加密码">
+  <el-dialog v-model="dialogVisible" title="添加笔记">
     <el-form ref="formRef" :model="form" :rules="rules">
       <el-row :gutter="20">
         <el-col :span="12">
@@ -14,25 +14,13 @@
             </el-select>
           </el-form-item>
         </el-col>
-        <el-col :span="12">
-          <el-form-item prop="username">
-            <el-input v-model="form.username" placeholder="用户名" />
-          </el-form-item>
-        </el-col>
-        <el-col :span="12">
-          <el-form-item prop="password">
-            <el-input v-model="form.password" placeholder="密码" show-password autocomplete="new-password" />
-          </el-form-item>
-        </el-col>
       </el-row>
-      <el-row type="flex" justify="space-between" :gutter="20">
-        <el-col :span="24">
-          <span>关联链接</span>
-          <el-button type="text" @click="addHandle"><el-icon>
-              <Plus />
-            </el-icon></el-button>
-        </el-col>
-      </el-row>
+      <el-form-item prop="fields">
+        <el-input v-model="form.fields" placeholder="字段" />
+      </el-form-item>
+      <el-form-item prop="note">
+        <el-input type="textarea" v-model="form.note" placeholder="笔记" :autosize="{ minRows: 2, maxRows: 10 }" />
+      </el-form-item>
     </el-form>
     <template #footer>
       <span class="dialog-footer">
@@ -45,10 +33,9 @@
 
 <script setup lang="ts">
 import { ref, reactive, inject, watch } from 'vue'
-import { Plus } from '@element-plus/icons-vue'
 import type { Ref } from 'vue'
 import type { FormInstance, FormRules } from 'element-plus'
-import { addPassword } from '@/utils/api'
+import { addNote, addPassword } from '@/utils/api'
 import type { Group } from '@/types/main'
 
 const emits = defineEmits(['submit'])
@@ -58,14 +45,14 @@ const formRef = ref<FormInstance>()
 const initForm = {
   name: '',
   groupId: '',
-  username: '',
-  password: '',
+  fields: '',
+  note: '',
 }
 const form = reactive(initForm)
 const rules = ref<FormRules>({
   name: [{ required: true, message: '请输入名称', trigger: 'blur' }],
   groupId: [{ required: true, message: '请选择分组', trigger: 'blur' }],
-  password: [{ required: true, message: '请输入密码', trigger: 'blur' }],
+  note: [{ required: true, message: '请输入笔记', trigger: 'blur' }],
 })
 
 watch(dialogVisible, (val) => {
@@ -79,16 +66,14 @@ const addHandle = () => {
     if (!valid) {
       return
     }
-    addPassword(form).then(() => {
+    addNote(form).then(() => {
       emits('submit')
       dialogVisible.value = false
     })
   })
 }
-
 const open = () => {
   dialogVisible.value = true
-
 }
 const close = () => {
   dialogVisible.value = false

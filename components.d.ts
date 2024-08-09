@@ -27,6 +27,7 @@ declare module 'vue' {
     HomeHeader: typeof import('./src/components/HomeHeader.vue')['default']
     HomeSearch: typeof import('./src/components/HomeSearch.vue')['default']
     LoginBox: typeof import('./src/components/LoginBox.vue')['default']
+    NoteAddDialog: typeof import('./src/components/NoteAddDialog.vue')['default']
     NoteBody: typeof import('./src/components/NoteBody.vue')['default']
     PasswdAddDialog: typeof import('./src/components/PasswdAddDialog.vue')['default']
     RegisterBox: typeof import('./src/components/RegisterBox.vue')['default']

@@ -43,7 +43,8 @@
         </li>
       </ul>
     </el-scrollbar>
-    <PasswdAddDialog ref="addDialogRef" />
+    <PasswdAddDialog ref="addDialogRef" @submit="handleSubmit(1)" />
+    <NoteAddDialog ref="addNoteRef" @submit="handleSubmit(2)" />
   </div>
 </template>
 
@@ -53,11 +54,12 @@ import { importPasswd, getGroups, importNote } from '@/utils/api'
 import { ElMessage } from 'element-plus'
 import { Folder, Close, Check } from '@element-plus/icons-vue'
 import PasswdAddDialog from '@/components/PasswdAddDialog.vue';
+import NoteAddDialog from './NoteAddDialog.vue';
 import type { Group } from '@/types/main'
 const props = defineProps<{
   checkedId: string
 }>()
-const emits = defineEmits(['import', 'update:checkedId'])
+const emits = defineEmits(['submit', 'update:checkedId'])
 const groupData = ref<Pick<Group, 'id' | 'title'>[]>([])
 const groupList = computed<Group[]>(() => {
   return groupData.value.map((item) => ({
@@ -66,6 +68,7 @@ const groupList = computed<Group[]>(() => {
   }))
 })
 const addDialogRef = ref<InstanceType<typeof PasswdAddDialog> | null>(null)
+const addNoteRef = ref<InstanceType<typeof NoteAddDialog> | null>(null)
 const commandList = [
   { label: '密码', value: 1 },
   { label: '笔记', value: 2 },
@@ -89,7 +92,7 @@ const handleChange = () => {
     if (file)
       request(file).then(() => {
         setTimeout(() => {
-          emits('import', importType.value)
+          handleSubmit(importType.value)
         }, 1000)
         ElMessage.success('导入成功')
       })
@@ -97,7 +100,10 @@ const handleChange = () => {
   element.click()
 }
 const handleAdd = () => {
-  addDialogRef.value?.open()
+  addType.value === 1 ? addDialogRef.value?.open() : addNoteRef.value?.open()
+}
+const handleSubmit = (type: number) => {
+  emits('submit', type)
 }
 const selectGroup = (id: string) => {
   emits('update:checkedId', id)

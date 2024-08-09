@@ -7,16 +7,22 @@
           <div v-if="updateId !== item.id" class="password-item" @click="updateStart(item.id)">
             <div class="info-block">
               <span class="main-line">{{ item.name }}</span>
+              <span class="secondary-line">{{ item.fields }}</span>
             </div>
             <div class="action-block">
-              <el-button @click.stop="copyPassword(item.id)">复制</el-button>
+              <el-button @click.stop="copyNote(item.id)">复制</el-button>
             </div>
           </div>
           <div v-else class="password-item-update">
-            <div class="input-block">
-              <div class="input-box">
-                <el-input v-model="updateForm.name" placeholder="名称" size="small" />
-              </div>
+            <div class="input-box">
+              <el-input v-model="updateForm.name" placeholder="名称" size="small" />
+            </div>
+            <div class="input-box">
+              <el-input v-model="updateForm.fields" placeholder="说明字段" size="small" />
+            </div>
+            <div class="input-box">
+              <el-input type="textarea" v-model="updateForm.note" placeholder="内容" size="small"
+                :autosize="{ minRows: 2, maxRows: 10 }" />
             </div>
             <div class="input-block">
 
@@ -35,10 +41,10 @@
 
 <script lang="ts" setup>
 import { ref, reactive, onMounted, watch } from 'vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import type { Note } from '@/types/main'
 import type { PasswordParams } from '@/types/api'
-import { getList, getPasswdText, updatePassword, deletePassword, getNotes } from '@/utils/api'
+import { getNotes, getNoteText, deleteNote, updateNote } from '@/utils/api'
 const props = defineProps<{
   groupID: string
 }>()
@@ -75,7 +81,6 @@ function queryList() {
     params.groupId = props.groupID
   }
   getNotes(params).then((res) => {
-    console.log("🚀 ~ getNotes ~ res:", res)
     list.value = list.value.concat(
       res.data.map((item) => {
         return {
@@ -103,11 +108,9 @@ async function copyContent(text: string) {
     console.error('Failed to copy: ', err)
   }
 }
-function copyUsername(text: string) {
-  copyContent(text)
-}
-async function copyPassword(id: string) {
-  const text = await getPasswdText(id)
+
+async function copyNote(id: string) {
+  const text = await getNoteText(id)
   copyContent(text)
 }
 function setSearchText(text: string) {
@@ -122,16 +125,16 @@ async function updateStart(id: string) {
   updateId.value = id
   const data = list.value.find((item) => item.id === id)
   if (data) {
-    const password = await getPasswdText(id)
+    const text = await getNoteText(id)
     updateForm.name = data.name
-    updateForm.username = data.username
-    updateForm.password = password
+    updateForm.note = text
+    updateForm.fields = data.fields
   }
 }
 async function updateHandle() {
   loading.value = true
   try {
-    await updatePassword(updateId.value, updateForm)
+    await updateNote(updateId.value, updateForm)
     updateId.value = '0'
   } catch (e) {
     console.error(e)
@@ -142,15 +145,19 @@ function cancelUpdate() {
   updateId.value = '0'
 }
 async function deleteHandle() {
-  loading.value = true
-  try {
-    await deletePassword(updateId.value)
-    list.value = list.value.filter((item) => item.id !== updateId.value)
-    updateId.value = '0'
-  } catch (e) {
-    console.error(e)
-  }
-  loading.value = false
+  ElMessageBox.confirm('此操作将永久删除该笔记，是否继续？', '提示')
+    .then(async () => {
+      loading.value = true
+      try {
+        await deleteNote(updateId.value)
+        list.value = list.value.filter((item) => item.id !== updateId.value)
+        updateId.value = '0'
+      } catch (e) {
+        console.error(e)
+      }
+      loading.value = false
+    })
+
 }
 onMounted(() => {
   queryList()
@@ -186,6 +193,9 @@ defineExpose({ setSearchText, reload })
   .info-block {
     display: flex;
     flex-direction: column;
+    flex: 1;
+    min-width: 0;
+    margin-right: 50px;
 
     .main-line {
       font-size: var(--el-font-size-large);
@@ -193,6 +203,13 @@ defineExpose({ setSearchText, reload })
 
     .secondary-line {
       color: var(--el-text-color-placeholder);
+      // 单行显示，多行用省略号
+      display: block;
+      overflow: hidden;
+      word-break: break-all;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      min-height: 1.6em;
     }
   }
 
@@ -204,14 +221,19 @@ defineExpose({ setSearchText, reload })
 
 .password-item-update {
   display: flex;
+  flex-direction: column;
   padding: 8px 0;
+
+  .input-box {
+    margin-bottom: 8px;
+  }
 
   .input-block {
     flex: 1;
     padding: 0 8px;
 
     .input-box {
-      margin-bottom: 8px;
+      text-align: right;
     }
   }
 }

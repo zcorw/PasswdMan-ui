@@ -43,7 +43,7 @@
 
 <script lang="ts" setup>
 import { ref, reactive, onMounted, watch } from 'vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import type { Password } from '@/types/main'
 import type { PasswordParams } from '@/types/api'
 import { getList, getPasswdText, updatePassword, deletePassword } from '@/utils/api'
@@ -151,15 +151,18 @@ function cancelUpdate() {
   updateId.value = '0'
 }
 async function deleteHandle() {
-  loading.value = true
-  try {
-    await deletePassword(updateId.value)
-    list.value = list.value.filter((item) => item.id !== updateId.value)
-    updateId.value = '0'
-  } catch (e) {
-    console.error(e)
-  }
-  loading.value = false
+  ElMessageBox.confirm('此操作将永久删除该密码，是否继续？', '提示')
+    .then(async () => {
+      loading.value = true
+      try {
+        await deletePassword(updateId.value)
+        list.value = list.value.filter((item) => item.id !== updateId.value)
+        updateId.value = '0'
+      } catch (e) {
+        console.error(e)
+      }
+      loading.value = false
+    })
 }
 onMounted(() => {
   queryList()
