@@ -37,6 +37,7 @@ import { reactive, ref } from 'vue'
 import type { FormInstance, FormRules } from 'element-plus'
 import { register } from '@/utils/api'
 const emits = defineEmits(['login'])
+const props = defineProps<{ publicKey: string }>()
 const formRef = ref<FormInstance>()
 const form = reactive({
   username: '',
@@ -59,11 +60,11 @@ const rules = reactive<FormRules<typeof form>>({
   ],
 })
 const registerHandle = () => {
-  formRef.value.validate((valid) => {
+  formRef.value?.validate((valid) => {
     if (!valid) {
       return
     }
-    register(form.username, form.password).then(() => {
+    register(form.username, form.password, props.publicKey).then(() => {
       emits('login', form.username)
     })
   })

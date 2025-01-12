@@ -4,9 +4,10 @@
       v-if="type === 'login'"
       :username="username"
       :enableRegister="enableRegister"
+      :publicKey="publicKey"
       @register="register"
     />
-    <RegisterBox v-else @login="login" />
+    <RegisterBox v-else :publicKey="publicKey" @login="login" />
   </div>
 </template>
 
@@ -14,11 +15,12 @@
 import { ref, onMounted } from 'vue'
 import LoginBox from '@/components/LoginBox.vue'
 import RegisterBox from '@/components/RegisterBox.vue'
-import { getAuthConfig } from '@/utils/api'
+import { getAuthConfig, getPublicKey } from '@/utils/api'
 
 const type = ref('login')
 const username = ref('')
 const enableRegister = ref(false)
+const publicKey = ref('')
 const register = () => {
   type.value = 'register'
   username.value = ''
@@ -31,6 +33,9 @@ onMounted(() => {
   getAuthConfig().then((res) => {
     enableRegister.value = res.enableRegister
   })
+  getPublicKey().then((key) => {{
+    publicKey.value = key
+  }})
 })
 </script>
 

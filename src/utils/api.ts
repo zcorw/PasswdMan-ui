@@ -1,7 +1,17 @@
 import axios from 'axios'
 import { ElMessage } from 'element-plus'
 import router from '@/router'
-import type { PwListItem, GroupsItem, PasswordParams, CreatePassword, NoteListItem, CreateNote } from '@/types/api'
+import type {
+  PwListItem,
+  GroupsItem,
+  PasswordParams,
+  CreatePassword,
+  NoteListItem,
+  CreateNote
+} from '@/types/api'
+import CryptoHelper from './crypto'
+
+const cryptoHelper = new CryptoHelper()
 
 declare module 'axios' {
   export interface AxiosRequestConfig {
@@ -12,9 +22,9 @@ declare module 'axios' {
 const axiosInstance = axios.create({
   baseURL: '/api/', // url = base url + request url
   headers: {
-    'Content-Type': 'application/json',
+    'Content-Type': 'application/json'
   },
-  timeout: 60 * 60 * 1000,
+  timeout: 60 * 60 * 1000
   // timeout: 30 * 1000
   // withCredentials: true, // send cookies when cross-domain requests
 })
@@ -36,7 +46,7 @@ axiosInstance.interceptors.request.use(
   (error) => {
     console.error('Request error', error)
     return Promise.reject(error)
-  },
+  }
 )
 axiosInstance.interceptors.response.use(
   (response) => {
@@ -44,11 +54,26 @@ axiosInstance.interceptors.response.use(
     if (headers['x-new-token']) {
       localStorage.setItem('token', headers['x-new-token'])
     }
-    console.log(data.code)
     if (+data.code !== 20000) {
       ElMessage({ message: data.msg, type: 'error' })
       return Promise.reject({ ...data, message: data.msg })
     } else {
+      try {
+        if (typeof headers['pa-encrypt'] === 'string') {
+          const type = headers['pa-encrypt'].toLocaleLowerCase()
+          if (type === 'aes') {
+            data.data = cryptoHelper.decryptWithSymmetricKey(
+              data.data.data,
+              data.data.iv,
+              data.data.sign
+            )
+          }
+        }
+      } catch (error) {
+        tokenExpired()
+        if (error instanceof Error) ElMessage.error(error.message)
+        throw error
+      }
       return Promise.resolve(data)
     }
   },
@@ -60,7 +85,7 @@ axiosInstance.interceptors.response.use(
       error.response?.data?.msg && ElMessage.error(error.response.data.msg)
     }
     return Promise.reject(error)
-  },
+  }
 )
 
 function tokenExpired() {
@@ -68,19 +93,33 @@ function tokenExpired() {
   router.push({ name: 'login' })
 }
 
-export function login(user: string, passwd: string) {
+export function login(user: string, passwd: string, publicKey: string) {
+  cryptoHelper.updateEncryptKey()
   return axiosInstance
-    .post('login', { username: user, password: passwd }, { noAuthRequired: true })
+    .post(
+      'login',
+      {
+        encryptData: cryptoHelper.encryptWithSymmetricKey({ username: user, password: passwd }),
+        aesKey: cryptoHelper.encryptWithPublicKey(publicKey)
+      },
+      {
+        noAuthRequired: true
+      }
+    )
     .then((res) => {
       localStorage.setItem('token', res.data.token)
     })
 }
 
-export function register(user: string, passwd: string) {
+export function register(user: string, passwd: string, publicKey: string) {
+  cryptoHelper.updateEncryptKey()
   return axiosInstance.post(
     'register',
-    { username: user, password: passwd },
-    { noAuthRequired: true },
+    {
+      encryptData: cryptoHelper.encryptWithSymmetricKey({ username: user, password: passwd }),
+      aesKey: cryptoHelper.encryptWithPublicKey(publicKey)
+    },
+    { noAuthRequired: true }
   )
 }
 
@@ -90,8 +129,8 @@ export function importPasswd(file: File) {
   return axiosInstance
     .post('password/import', formData, {
       headers: {
-        'Content-Type': 'multipart/form-data',
-      },
+        'Content-Type': 'multipart/form-data'
+      }
     })
     .then((res) => {
       return res.data
@@ -104,8 +143,8 @@ export function importNote(file: File) {
   return axiosInstance
     .post('note/import', formData, {
       headers: {
-        'Content-Type': 'multipart/form-data',
-      },
+        'Content-Type': 'multipart/form-data'
+      }
     })
     .then((res) => {
       return res.data
@@ -119,8 +158,8 @@ export function getList(data: PasswordParams) {
         id: data.id,
         limit: 20,
         text: data.text,
-        groupId: data.groupId,
-      },
+        groupId: data.groupId
+      }
     })
     .then((res) => {
       return res.data
@@ -140,36 +179,34 @@ export function getGroups() {
 }
 
 export function addPassword(data: CreatePassword) {
-  return axiosInstance
-    .post('password/add', data)
-    .then((res) => {
-      return res.data
-    })
+  return axiosInstance.post('password/add', data).then((res) => {
+    return res.data
+  })
 }
 
 export function getPasswdText(id: string) {
   return axiosInstance
     .get('password/find', {
       params: {
-        id,
-      },
+        id
+      }
     })
     .then((res) => {
       return res.data as string
     })
 }
 
-function allToString<T extends object>(data: T): {
+function allToString<T extends object>(
+  data: T
+): {
   [key in keyof T]?: string
 } {
   const dataCopy = {} as { [key in keyof T]?: string }
-  (Object.keys(data) as Array<keyof T>).forEach((key: keyof T) => {
+  ;(Object.keys(data) as Array<keyof T>).forEach((key: keyof T) => {
     if (Array.isArray(data[key])) {
-      if (data && data[key] && data[key].length > 0)
-        dataCopy[key] = data[key].join(',')
+      if (data && data[key] && data[key].length > 0) dataCopy[key] = data[key].join(',')
     } else {
-      if (data[key] !== undefined && data[key] !== null)
-        dataCopy[key] = String(data[key])
+      if (data[key] !== undefined && data[key] !== null) dataCopy[key] = String(data[key])
     }
   })
   return dataCopy
@@ -177,23 +214,19 @@ function allToString<T extends object>(data: T): {
 
 export function updatePassword(id: string, data: CreatePassword) {
   const dataCopy = allToString<CreatePassword>(data)
-  return axiosInstance
-    .put('password/update/' + id, dataCopy)
-    .then((res) => {
-      return {
-        pId: res.data.pId,
-        name: res.data.name,
-        username: res.data.username,
-      }
-    })
+  return axiosInstance.put('password/update/' + id, dataCopy).then((res) => {
+    return {
+      pId: res.data.pId,
+      name: res.data.name,
+      username: res.data.username
+    }
+  })
 }
 
 export function deletePassword(id: string) {
-  return axiosInstance
-    .delete('password/delete/' + id)
-    .then((res) => {
-      return res.data
-    })
+  return axiosInstance.delete('password/delete/' + id).then((res) => {
+    return res.data
+  })
 }
 
 export function signOut() {
@@ -207,8 +240,8 @@ export function getNotes(data: PasswordParams) {
         id: data.id,
         limit: 20,
         text: data.text,
-        groupId: data.groupId,
-      },
+        groupId: data.groupId
+      }
     })
     .then((res) => {
       return res.data
@@ -219,8 +252,8 @@ export function getNoteText(id: string) {
   return axiosInstance
     .get('note/find', {
       params: {
-        id,
-      },
+        id
+      }
     })
     .then((res) => {
       return res.data as string
@@ -228,26 +261,26 @@ export function getNoteText(id: string) {
 }
 
 export function deleteNote(id: string) {
-  return axiosInstance
-    .delete('note/delete/' + id)
-    .then((res) => {
-      return res.data
-    })
+  return axiosInstance.delete('note/delete/' + id).then((res) => {
+    return res.data
+  })
 }
 
 export function updateNote(id: string, data: CreateNote) {
   const dataCopy = allToString<CreateNote>(data)
-  return axiosInstance
-    .put('note/update/' + id, dataCopy)
-    .then((res) => {
-      return res.data
-    })
+  return axiosInstance.put('note/update/' + id, dataCopy).then((res) => {
+    return res.data
+  })
 }
 
 export function addNote(data: CreateNote) {
-  return axiosInstance
-    .post('note/add', data)
-    .then((res) => {
-      return res.data
-    })
+  return axiosInstance.post('note/add', data).then((res) => {
+    return res.data
+  })
+}
+
+export function getPublicKey() {
+  return axiosInstance.get('publicKey', { noAuthRequired: true }).then((res) => {
+    return res.data
+  })
 }

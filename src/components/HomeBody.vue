@@ -10,8 +10,8 @@
               <span class="secondary-line">{{ item.username }}</span>
             </div>
             <div class="action-block">
-              <el-button @click.stop="copyUsername(item.username)">用户名</el-button>
-              <el-button @click.stop="copyPassword(item.id)">密码</el-button>
+              <el-button @click.stop="copyContent(item.username)">用户名</el-button>
+              <el-button @click.stop="copyContent(item.password)">密码</el-button>
             </div>
           </div>
           <div v-else class="password-item-update">
@@ -112,13 +112,6 @@ async function copyContent(text: string) {
     console.error('Failed to copy: ', err)
   }
 }
-function copyUsername(text: string) {
-  copyContent(text)
-}
-async function copyPassword(id: string) {
-  const text = await getPasswdText(id)
-  copyContent(text)
-}
 function setSearchText(text: string) {
   queryText.value = text
   list.value = []
@@ -131,10 +124,9 @@ async function updateStart(id: string) {
   updateId.value = id
   const data = list.value.find((item) => item.id === id)
   if (data) {
-    const password = await getPasswdText(id)
     updateForm.name = data.name
     updateForm.username = data.username
-    updateForm.password = password
+    updateForm.password = data.password
   }
 }
 async function updateHandle() {

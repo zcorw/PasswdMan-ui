@@ -31,6 +31,10 @@ import router from '@/router'
 const props = defineProps({
   username: String,
   enableRegister: Boolean,
+  publicKey: {
+    type: String,
+    default: "",
+  }
 })
 const emits = defineEmits(['register'])
 const formRef = ref<FormInstance>()
@@ -56,7 +60,7 @@ onMounted(() => {
 })
 
 const loginHandle = () => {
-  login(form.username, form.password).then(() => {
+  login(form.username, form.password, props.publicKey).then(() => {
     if (form.remember) {
       localStorage.setItem('username', form.username)
     }
