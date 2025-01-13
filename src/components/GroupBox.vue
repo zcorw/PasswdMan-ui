@@ -21,6 +21,7 @@
           </el-dropdown-menu>
         </template>
       </el-dropdown>
+      <el-button @click="exportCsv">导出</el-button>
     </div>
     <div class="group-title">
       <el-icon>
@@ -50,7 +51,7 @@
 
 <script setup lang="ts">
 import { onMounted, computed, ref, provide } from 'vue'
-import { importPasswd, getGroups, importNote } from '@/utils/api'
+import { importPasswd, getGroups, importNote, getCsv } from '@/utils/api'
 import { ElMessage } from 'element-plus'
 import { Folder, Close, Check } from '@element-plus/icons-vue'
 import PasswdAddDialog from '@/components/PasswdAddDialog.vue';
@@ -117,6 +118,9 @@ const handleCommand = (type: number, command: number) => {
   } else {
     addType.value = command
   }
+}
+const exportCsv = () => {
+  getCsv()
 }
 onMounted(() => {
   getGroups().then((data) => {

@@ -13,6 +13,22 @@ import CryptoHelper from './crypto'
 
 const cryptoHelper = new CryptoHelper()
 
+function downloadFile(blob: Blob, filename: string) {
+  // 创建下载链接
+  const downloadUrl = URL.createObjectURL(blob)
+
+  // 动态创建 <a> 标签并触发下载
+  const link = document.createElement('a')
+  link.href = downloadUrl
+  link.download = filename
+  document.body.appendChild(link)
+  link.click()
+
+  // 释放 URL 对象
+  URL.revokeObjectURL(downloadUrl)
+  document.body.removeChild(link)
+}
+
 declare module 'axios' {
   export interface AxiosRequestConfig {
     noAuthRequired?: boolean
@@ -53,6 +69,15 @@ axiosInstance.interceptors.response.use(
     const { data, headers } = response
     if (headers['x-new-token']) {
       localStorage.setItem('token', headers['x-new-token'])
+    }
+    if (headers['content-disposition']) {
+      const blob = new Blob([data], { type: headers['content-type'] })
+      const disposition = headers['content-disposition']
+      const fileName = disposition
+        ? decodeURIComponent(disposition.split('filename*=')[1].split("''")[1] || 'downloaded-file')
+        : 'downloaded-file'
+      downloadFile(blob, fileName)
+      return Promise.resolve(data)
     }
     if (+data.code !== 20000) {
       ElMessage({ message: data.msg, type: 'error' })
@@ -204,7 +229,8 @@ function allToString<T extends object>(
   const dataCopy = {} as { [key in keyof T]?: string }
   ;(Object.keys(data) as Array<keyof T>).forEach((key: keyof T) => {
     if (Array.isArray(data[key])) {
-      if (data && data[key] && data[key].length > 0) dataCopy[key] = data[key].join(',')
+      if (data && Array.isArray(data[key]) && data[key].length > 0)
+        dataCopy[key] = data[key].join(',')
     } else {
       if (data[key] !== undefined && data[key] !== null) dataCopy[key] = String(data[key])
     }
@@ -283,4 +309,8 @@ export function getPublicKey() {
   return axiosInstance.get('publicKey', { noAuthRequired: true }).then((res) => {
     return res.data
   })
+}
+
+export function getCsv() {
+  return axiosInstance.get('password/export', { responseType: 'blob' })
 }
